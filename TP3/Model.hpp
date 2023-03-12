@@ -6,9 +6,16 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <iostream>
 
-class Model {
+#include <common/texture.hpp>
+
+#include <GL/glew.h>
+
+#include <GLFW/glfw3.h>
+
+//unsigned int textureFromFile(const char *path, const string &directory, bool gamma = false);
+
+/*class Model {
     public : 
 
     int resolution = 8;
@@ -17,9 +24,11 @@ class Model {
     std::vector<glm::vec3> indexed_vertices;
     std::vector<float> textureData;
 
-    Model() {}
+    Model(std::string filename) {
+        loadOFF(filename, indexed_vertices, indices, triangles )
+    }
 
-    Model(std::vector<unsigned short> indices, std::vector<glm::vec3> indexed_vertices, std::vector<float> textureData) {
+    /*Model(std::vector<unsigned short> indices, std::vector<glm::vec3> indexed_vertices, std::vector<float> textureData) {
         this->indices = indices;
         this->indexed_vertices = indexed_vertices;
         this->textureData = textureData;
@@ -139,4 +148,4 @@ void generateTextureCoords(float length, int resolution) {
 
 }
 
-};
+};*/

@@ -67,6 +67,7 @@ add_executable(TP3
 	common/vboindexer.cpp
 	common/vboindexer.hpp
 	TP3/Model.hpp
+	TP3/Mesh.hpp
 	TP3/Entity.hpp
 	TP3/Transform.hpp
 	

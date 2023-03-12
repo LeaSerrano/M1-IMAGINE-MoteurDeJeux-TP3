@@ -24,7 +24,7 @@ using namespace glm;
 #include <common/vboindexer.hpp>
 #include <common/texture.hpp>
 
-#include "Entity.hpp"
+#include "SceneGraph.hpp"
 
 void processInput(GLFWwindow *window);
 void mouse_callback(GLFWwindow *window, double xpos, double ypos);
@@ -72,8 +72,128 @@ bool isHeightMapTextureAlreadyImported = false;
 
 float timeCst = 0;
 
-Model plan;
+
+std::vector<glm::vec3> indexed_vertices;
+std::vector<std::vector<unsigned short> > triangles;
+std::vector<float> textureData;
+int resolution = 8;
+std::vector<unsigned short> indices;
+
 /*******************************************************************************/
+
+void generatePlan(float length, int resolution) {
+
+    float pas = length/(float)resolution;
+
+    float positioni = 0, positionj;
+
+    float nbSquare = pow(resolution, 2);
+
+    float pasBasX = 0;
+    float pasBasZ = 0;
+    float pasHautX = pas;
+    float pasHautZ = pas;
+
+    int cpt = floor(nbSquare/resolution)-1;
+
+    glm::vec3 basGauche, basDroit, hautGauche, hautDroit;
+
+    for (int elt = 0; elt < nbSquare; elt++) {
+
+        basGauche = glm::vec3(pasBasX, 0, pasBasZ);
+        basDroit = glm::vec3(pasHautX, 0, pasBasZ);
+
+        hautDroit = glm::vec3(pasHautX, 0, pasHautZ);
+        hautGauche = glm::vec3(pasBasX, 0, pasHautZ);
+
+        indexed_vertices.push_back(basGauche);
+        indexed_vertices.push_back(basDroit);
+        indexed_vertices.push_back(hautDroit);
+        indexed_vertices.push_back(hautGauche);
+
+        if (elt == cpt) {
+            pasBasX -= pas*(resolution-1);
+            pasHautX -= pas*(resolution-1);
+
+            pasBasZ += pas;
+            pasHautZ += pas;
+
+            cpt += resolution;
+        }
+        else {
+            pasBasX += pas;
+            pasHautX += pas;
+        }
+    }
+
+}
+
+void generateTriangle(int resolution) {
+
+    for (int i = 0; i < pow(resolution, 2)*4; i+=4) {
+
+        indices.push_back(i);
+        indices.push_back(i+1);
+        indices.push_back(i+2);
+
+        indices.push_back(i);
+        indices.push_back(i+2);
+        indices.push_back(i+3);
+
+    }
+
+}
+
+void generateTextureCoords(float length, int resolution) {
+
+    textureData.resize(resolution * resolution * 8);
+
+    float pas = length/(float)resolution;
+
+    float positioni = 0, positionj;
+
+    float nbSquare = pow(resolution, 2);
+
+    float pasBasX = 0;
+    float pasBasZ = 0;
+    float pasHautX = pas;
+    float pasHautZ = pas;
+
+    int cpt = floor(nbSquare/resolution)-1;
+
+    int elt = 0;
+
+    glm::vec3 basGauche, basDroit, hautGauche, hautDroit;
+
+    for (int indexTexture = 0; indexTexture < resolution * resolution * 8; indexTexture+=8) {
+
+        textureData[indexTexture] = pasBasX;
+        textureData[indexTexture+1] = pasBasZ;
+        textureData[indexTexture+2] = pasHautX;
+        textureData[indexTexture+3] = pasBasZ;
+        textureData[indexTexture+4] = pasHautX;
+        textureData[indexTexture+5] = pasHautZ;
+        textureData[indexTexture+6] = pasBasX;
+        textureData[indexTexture+7] = pasHautZ;
+
+        if (elt == cpt) {
+            pasBasX -= pas*(resolution-1);
+            pasHautX -= pas*(resolution-1);
+
+            pasBasZ += pas;
+            pasHautZ += pas;
+
+            cpt += resolution;
+        }
+        else {
+            pasBasX += pas;
+            pasHautX += pas;
+        }
+
+        elt++;
+    }
+
+}
 
 
 int main( void )
@@ -151,27 +271,60 @@ int main( void )
     /*std::string filename("cube.off");
     loadOFF(filename, indexed_vertices, indices, triangles );*/
 
-    plan.textureData.clear();
+
+    /*plan.textureData.clear();
     plan.generateTextureCoords(1, plan.resolution);
 
     plan.indexed_vertices.clear();
     plan.generatePlan(1, plan.resolution);
 
     plan.indices.clear();
-    plan.generateTriangle(plan.resolution);
+    plan.generateTriangle(plan.resolution);*/
 
-    Entity entity(plan.indices, plan.indexed_vertices, plan.textureData);
+    std::string filename("sphere.off");
+    SceneGraph sun(filename);
+
+    sun.transform.position.x = 2;
+    float scale = 0.75;
+    sun.transform.scale = {scale, scale, scale};
+
+    SceneGraph* earth = &sun;
+    for (int i = 0; i < 2; i++) {
+        earth->addChild(filename);
+        earth = earth->children.back().get();
+
+        earth->transform.position.x = 2;
+        earth->transform.scale = {scale, scale, scale};
+    }
+
+    /*SceneGraph* moon = (SceneGraph)&earth;
+    for (int i = 0; i < 1; i++) {
+        moon->addChild(filename);
+        moon = moon->children.back().get();
+
+        moon->transform.position.x = 2;
+        moon->transform.scale = {scale, scale, scale};
+    }
+    earth->update();*/
+    sun.update();
 
 
-    // Load it into a VBO
-    GLuint vertexbuffer;
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-    // Generate a buffer for the indices as well
-    GLuint elementbuffer;
+    /*generatePlan(1, resolution);
+    moutainPlan.indexed_vertices = indexed_vertices;
 
-    GLuint textureBuffer;
+    std::cout << moutainPlan.indexed_vertices.size() << std::endl;
+        
+    generateTriangle(resolution);
+    moutainPlan.indices = indices;
 
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    std::cout << moutainPlan.triangles.size() << std::endl;*/
+
+    /*generateTextureCoords(1, resolution);
+    moutainPlan.textureData = textureData;*/
+
+    //std::cout << moutainPlan.textureData.size() << std::endl;
 
 
     // Get a handle for our "LightPosition" uniform
@@ -219,7 +372,7 @@ int main( void )
 
         viewMatrix = glm::lookAt(camera_position, camera_position + camera_target, camera_up);
 
-        if (!display_cameraOrbitale) {
+        /*if (!display_cameraOrbitale) {
 
             modelMatrix = glm::mat4(1.0f);
         }
@@ -231,17 +384,47 @@ int main( void )
             modelMatrix = glm::rotate(modelMatrix, glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 
             modelMatrix = glm::rotate(modelMatrix, timeCst, glm::vec3(0, 1, 0));
-        }
+        }*/
 
         projectionMatrix = glm::perspective(glm::radians(45.0f), 4.0f/3.0f, 0.1f, 100.0f);
+
+        SceneGraph* earth = &sun;
+
+        while (earth->children.size())
+        {
+            glUniformMatrix4fv(glGetUniformLocation(programID, "model"), 1, false, &earth->transform.modelMatrix[0][0]);
+            earth->sendDatas();
+            earth->drawMesh();
+            earth->transform.rotation.x = 23;
+            earth->transform.rotation.y += 20 * deltaTime;
+            earth = earth->children.back().get();
+        }
+
+        /*SceneGraph* moon = earth;
+
+        while (moon->children.size())
+        {
+            glUniformMatrix4fv(glGetUniformLocation(programID, "model"), 1, false, &moon->transform.modelMatrix[0][0]);
+            moon->sendDatas();
+            moon->drawMesh();
+            moon->transform.rotation.x = 6;
+            moon->transform.rotation.y += 1 * deltaTime;
+            moon = moon->children.back().get();
+        }*/
+
+        sun.transform.rotation.y += 20 * deltaTime;
+        sun.update();
 
 
         glUniformMatrix4fv(glGetUniformLocation(programID, "view"), 1 , GL_FALSE, &viewMatrix[0][0]);
         glUniformMatrix4fv(glGetUniformLocation(programID, "projection"), 1 , GL_FALSE, &projectionMatrix[0][0]);
         glUniformMatrix4fv(glGetUniformLocation(programID, "model"), 1, false, &modelMatrix[0][0]);
 
+        /*moutainPlan.sendDatas();
+        moutainPlan.drawMesh(programID);*/
 
-        glGenBuffers(1, &vertexbuffer);
+
+        /*glGenBuffers(1, &vertexbuffer);
         glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
         glBufferData(GL_ARRAY_BUFFER, plan.indexed_vertices.size() * sizeof(glm::vec3), &plan.indexed_vertices[0], GL_STATIC_DRAW);
 
@@ -251,10 +434,10 @@ int main( void )
 
         glGenBuffers(1, &textureBuffer);
         glBindBuffer(GL_ARRAY_BUFFER, textureBuffer);
-        glBufferData(GL_ARRAY_BUFFER, plan.textureData.size() * sizeof(float), &plan.textureData[0], GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, plan.textureData.size() * sizeof(float), &plan.textureData[0], GL_STATIC_DRAW);*/
 
         // 1rst attribute buffer : vertices
-        glEnableVertexAttribArray(0);
+        /*glEnableVertexAttribArray(0);
         glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
         glVertexAttribPointer(
                     0,                  // attribute
@@ -263,10 +446,12 @@ int main( void )
                     GL_FALSE,           // normalized?
                     0,                  // stride
                     (void*)0            // array buffer offset
-                    );
+                    );*/
+
+
 
         // Index buffer
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
+        /*glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
 
         glBindBuffer(GL_ARRAY_BUFFER, textureBuffer);
         glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
@@ -302,15 +487,15 @@ int main( void )
             glUniform1i(glGetUniformLocation(programID, "textureCoords"), 3);
 
             isHeightMapTextureAlreadyImported = true;
-        }
+        }*/
         
         // Draw the triangles !
-        glDrawElements(
+        /*glDrawElements(
                     GL_TRIANGLES,      // mode
                     plan.indices.size(),    // count
                     GL_UNSIGNED_SHORT,   // type
                     (void*)0           // element array buffer offset
-                    );
+                    );*/
 
         glDisableVertexAttribArray(0);
 
@@ -323,9 +508,9 @@ int main( void )
            glfwWindowShouldClose(window) == 0 );
 
     // Cleanup VBO and shader
-    glDeleteBuffers(1, &vertexbuffer);
+    /*glDeleteBuffers(1, &vertexbuffer);
     glDeleteBuffers(1, &elementbuffer);
-    glDeleteBuffers(1, &textureBuffer);
+    glDeleteBuffers(1, &textureBuffer);*/
     glDeleteProgram(programID);
     glDeleteVertexArrays(1, &VertexArrayID);
 
@@ -383,11 +568,11 @@ void processInput(GLFWwindow *window)
 
 
     if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS && !PkeyIsPressed) {
-        plan.resolution ++;
+        /*plan.resolution ++;
 
         plan.generatePlan(1, plan.resolution);
         plan.generateTriangle(plan.resolution);
-        plan.generateTextureCoords(1, plan.resolution);
+        plan.generateTextureCoords(1, plan.resolution);*/
 
         PkeyIsPressed = true;
     }
@@ -397,11 +582,11 @@ void processInput(GLFWwindow *window)
     }
 
     if (glfwGetKey(window, GLFW_KEY_SEMICOLON) == GLFW_PRESS && !SemicolonkeyIsPressed) { //M
-        plan.resolution--;
+        /*plan.resolution--;
 
         plan.generatePlan(1, plan.resolution);
         plan.generateTriangle(plan.resolution);
-        plan.generateTextureCoords(1, plan.resolution);
+        plan.generateTextureCoords(1, plan.resolution);*/
 
         SemicolonkeyIsPressed = true;
     }

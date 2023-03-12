@@ -344,7 +344,7 @@ CMakeFiles/TP3.dir/TP3/TP3.cpp.o: ../TP3/TP3.cpp \
   ../common/vboindexer.hpp \
   ../common/texture.hpp \
   ../TP3/Entity.hpp \
-  ../TP3/Model.hpp \
+  ../TP3/Mesh.hpp \
   ../TP3/Transform.hpp \
   /usr/include/c++/11/list \
   /usr/include/c++/11/bits/stl_list.h \
@@ -1437,8 +1437,6 @@ CMakeFiles/TP3.dir/common/vboindexer.cpp.o: ../common/vboindexer.cpp \
 
 /usr/include/strings.h:
 
-../common/objloader.cpp:
-
 ../common/controls.hpp:
 
 /usr/include/KHR/khrplatform.h:
@@ -1472,6 +1470,10 @@ CMakeFiles/TP3.dir/common/vboindexer.cpp.o: ../common/vboindexer.cpp \
 /usr/include/c++/11/list:
 
 ../TP3/Transform.hpp:
+
+../common/objloader.cpp:
+
+../TP3/Mesh.hpp:
 
 ../common/vboindexer.hpp:
 
@@ -2044,8 +2046,6 @@ CMakeFiles/TP3.dir/common/vboindexer.cpp.o: ../common/vboindexer.cpp \
 /usr/include/x86_64-linux-gnu/bits/types/struct_tm.h:
 
 /usr/include/c++/11/bits/locale_facets.tcc:
-
-../TP3/Model.hpp:
 
 /usr/include/c++/11/istream:
 
