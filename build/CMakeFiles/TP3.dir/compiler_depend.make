@@ -343,7 +343,7 @@ CMakeFiles/TP3.dir/TP3/TP3.cpp.o: ../TP3/TP3.cpp \
   ../common/objloader.hpp \
   ../common/vboindexer.hpp \
   ../common/texture.hpp \
-  ../TP3/Entity.hpp \
+  ../TP3/SceneGraphNode.hpp \
   ../TP3/Mesh.hpp \
   ../TP3/Transform.hpp \
   /usr/include/c++/11/list \
@@ -1777,6 +1777,8 @@ CMakeFiles/TP3.dir/common/vboindexer.cpp.o: ../common/vboindexer.cpp \
 
 /usr/lib/gcc/x86_64-linux-gnu/11/include/stdarg.h:
 
+../TP3/SceneGraphNode.hpp:
+
 /usr/include/x86_64-linux-gnu/bits/timesize.h:
 
 /usr/include/x86_64-linux-gnu/c++/11/bits/cpu_defines.h:
@@ -2126,8 +2128,6 @@ CMakeFiles/TP3.dir/common/vboindexer.cpp.o: ../common/vboindexer.cpp \
 /usr/include/x86_64-linux-gnu/bits/types/__FILE.h:
 
 /usr/include/math.h:
-
-../TP3/Entity.hpp:
 
 ../external/glm-0.9.7.1/glm/gtc/constants.inl:
 

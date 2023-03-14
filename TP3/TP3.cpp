@@ -24,11 +24,11 @@ using namespace glm;
 #include <common/vboindexer.hpp>
 #include <common/texture.hpp>
 
-#include "SceneGraph.hpp"
+#include "SceneGraphNode.hpp"
 
 void processInput(GLFWwindow *window);
-void mouse_callback(GLFWwindow *window, double xpos, double ypos);
-void scroll_callback(GLFWwindow *window, double xpos, double ypos);
+/*void mouse_callback(GLFWwindow *window, double xpos, double ypos);
+void scroll_callback(GLFWwindow *window, double xpos, double ypos);*/
 
 // settings
 const unsigned int SCR_WIDTH = 800;
@@ -64,12 +64,6 @@ bool CkeyIsPressed = false;
 bool UpKeyIsPressed = false;
 bool DownKeyIsPressed = false;
 
-
-bool isGrassTextureAlreadyImported = false;
-bool isRockTextureAlreadyImported = false;
-bool isSnowrocksTextureAlreadyImported = false;
-bool isHeightMapTextureAlreadyImported = false;
-
 float timeCst = 0;
 
 
@@ -79,9 +73,21 @@ std::vector<float> textureData;
 int resolution = 8;
 std::vector<unsigned short> indices;
 
+SceneGraphNode* rootNode = new SceneGraphNode(indexed_vertices, textureData, indices, true);
+SceneGraphNode* plan = new SceneGraphNode(indexed_vertices, textureData, indices, true);
+
+bool isGrassTextureAlreadyImported = false;
+    bool isRockTextureAlreadyImported = false;
+    bool isSnowrocksTextureAlreadyImported = false;
+    bool isHeightMapTextureAlreadyImported = false;
+
+    bool isATexturedMesh = true;
+
 /*******************************************************************************/
 
-void generatePlan(float length, int resolution) {
+std::vector<glm::vec3> generatePlan(float length, int resolution) {
+
+    std::vector<glm::vec3> vertices;
 
     float pas = length/(float)resolution;
 
@@ -106,10 +112,10 @@ void generatePlan(float length, int resolution) {
         hautDroit = glm::vec3(pasHautX, 0, pasHautZ);
         hautGauche = glm::vec3(pasBasX, 0, pasHautZ);
 
-        indexed_vertices.push_back(basGauche);
-        indexed_vertices.push_back(basDroit);
-        indexed_vertices.push_back(hautDroit);
-        indexed_vertices.push_back(hautGauche);
+        vertices.push_back(basGauche);
+        vertices.push_back(basDroit);
+        vertices.push_back(hautDroit);
+        vertices.push_back(hautGauche);
 
         if (elt == cpt) {
             pasBasX -= pas*(resolution-1);
@@ -126,27 +132,35 @@ void generatePlan(float length, int resolution) {
         }
     }
 
+    return vertices;
+
 }
 
-void generateTriangle(int resolution) {
+std::vector<unsigned short> generateTriangle(int resolution) {
+
+    std::vector<unsigned short> id;
 
     for (int i = 0; i < pow(resolution, 2)*4; i+=4) {
 
-        indices.push_back(i);
-        indices.push_back(i+1);
-        indices.push_back(i+2);
+        id.push_back(i);
+        id.push_back(i+1);
+        id.push_back(i+2);
 
-        indices.push_back(i);
-        indices.push_back(i+2);
-        indices.push_back(i+3);
+        id.push_back(i);
+        id.push_back(i+2);
+        id.push_back(i+3);
 
     }
 
+    return id;
+
 }
 
-void generateTextureCoords(float length, int resolution) {
+std::vector<float> generateTextureCoords(float length, int resolution) {
 
-    textureData.resize(resolution * resolution * 8);
+    std::vector<float> texture;
+
+    texture.resize(resolution * resolution * 8);
 
     float pas = length/(float)resolution;
 
@@ -167,14 +181,14 @@ void generateTextureCoords(float length, int resolution) {
 
     for (int indexTexture = 0; indexTexture < resolution * resolution * 8; indexTexture+=8) {
 
-        textureData[indexTexture] = pasBasX;
-        textureData[indexTexture+1] = pasBasZ;
-        textureData[indexTexture+2] = pasHautX;
-        textureData[indexTexture+3] = pasBasZ;
-        textureData[indexTexture+4] = pasHautX;
-        textureData[indexTexture+5] = pasHautZ;
-        textureData[indexTexture+6] = pasBasX;
-        textureData[indexTexture+7] = pasHautZ;
+        texture[indexTexture] = pasBasX;
+        texture[indexTexture+1] = pasBasZ;
+        texture[indexTexture+2] = pasHautX;
+        texture[indexTexture+3] = pasBasZ;
+        texture[indexTexture+4] = pasHautX;
+        texture[indexTexture+5] = pasHautZ;
+        texture[indexTexture+6] = pasBasX;
+        texture[indexTexture+7] = pasHautZ;
 
         if (elt == cpt) {
             pasBasX -= pas*(resolution-1);
@@ -192,6 +206,8 @@ void generateTextureCoords(float length, int resolution) {
 
         elt++;
     }
+
+    return texture;
 
 }
 
@@ -213,7 +229,7 @@ int main( void )
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     // Open a window and create its OpenGL context
-    window = glfwCreateWindow( 1024, 768, "TP2 - GLFW", NULL, NULL);
+    window = glfwCreateWindow( 1024, 768, "TP3 - GLFW", NULL, NULL);
     if( window == NULL ){
         fprintf( stderr, "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible. Try the 2.1 version of the tutorials.\n" );
         getchar();
@@ -231,8 +247,8 @@ int main( void )
         return -1;
     }
 
-    glfwSetCursorPosCallback(window, mouse_callback);
-    glfwSetCursorPosCallback(window, scroll_callback);
+    /*glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetCursorPosCallback(window, scroll_callback);*/
 
     // Ensure we can capture the escape key being pressed below
     glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
@@ -272,59 +288,46 @@ int main( void )
     loadOFF(filename, indexed_vertices, indices, triangles );*/
 
 
-    /*plan.textureData.clear();
-    plan.generateTextureCoords(1, plan.resolution);
-
-    plan.indexed_vertices.clear();
-    plan.generatePlan(1, plan.resolution);
-
-    plan.indices.clear();
-    plan.generateTriangle(plan.resolution);*/
-
+    //Solar system
+    /*bool isATexturedMesh = false;
     std::string filename("sphere.off");
-    SceneGraph sun(filename);
 
-    sun.transform.position.x = 2;
-    float scale = 0.75;
-    sun.transform.scale = {scale, scale, scale};
+    SceneGraphNode* rootNode = new SceneGraphNode(filename, isATexturedMesh);
+    
+    float sunScale = 0.75;
+    SceneGraphNode* sun = new SceneGraphNode(filename, isATexturedMesh);
+    sun->transform.position.x = 1;
+    sun->transform.scale = {sunScale, sunScale, sunScale};
 
-    SceneGraph* earth = &sun;
-    for (int i = 0; i < 2; i++) {
-        earth->addChild(filename);
-        earth = earth->children.back().get();
+    float earthScale = 0.5;
+    SceneGraphNode* earth = new SceneGraphNode(filename, isATexturedMesh);
+    earth->transform.position.x = 3.5;
+    earth->transform.scale = {earthScale, earthScale, earthScale};
 
-        earth->transform.position.x = 2;
-        earth->transform.scale = {scale, scale, scale};
-    }
+    float moonScale = 0.2;
+    SceneGraphNode* moon = new SceneGraphNode(filename, isATexturedMesh);
+    moon->transform.position.x = 5;
+    moon->transform.scale = {moonScale, moonScale, moonScale};
+    
+    rootNode->addChild(sun);
+    sun->addChild(earth);
+    earth->addChild(moon);*/
 
-    /*SceneGraph* moon = (SceneGraph)&earth;
-    for (int i = 0; i < 1; i++) {
-        moon->addChild(filename);
-        moon = moon->children.back().get();
+    
+    //Mountain plan
+    indexed_vertices = generatePlan(1, resolution);
+    indices = generateTriangle(resolution);
+    textureData = generateTextureCoords(1, resolution);
 
-        moon->transform.position.x = 2;
-        moon->transform.scale = {scale, scale, scale};
-    }
-    earth->update();*/
-    sun.update();
+    rootNode->updateMeshData(indexed_vertices, textureData, indices);
+    plan->updateMeshData(indexed_vertices, textureData, indices);
+    rootNode->addChild(plan);
 
+    GLuint vertexbuffer;
+    GLuint elementbuffer;
+    GLuint textureBuffer;
 
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-    /*generatePlan(1, resolution);
-    moutainPlan.indexed_vertices = indexed_vertices;
-
-    std::cout << moutainPlan.indexed_vertices.size() << std::endl;
-        
-    generateTriangle(resolution);
-    moutainPlan.indices = indices;
-
-    std::cout << moutainPlan.triangles.size() << std::endl;*/
-
-    /*generateTextureCoords(1, resolution);
-    moutainPlan.textureData = textureData;*/
-
-    //std::cout << moutainPlan.textureData.size() << std::endl;
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 
     // Get a handle for our "LightPosition" uniform
@@ -372,7 +375,49 @@ int main( void )
 
         viewMatrix = glm::lookAt(camera_position, camera_position + camera_target, camera_up);
 
-        /*if (!display_cameraOrbitale) {
+        projectionMatrix = glm::perspective(glm::radians(45.0f), 4.0f/3.0f, 0.1f, 100.0f);
+        
+        //Solar system
+        /*glUniformMatrix4fv(glGetUniformLocation(programID, "model"), 1, false, &earth->children[0]->transform.changeModelMatrix()[0][0]);
+        earth->drawScene(programID);
+
+        glUniformMatrix4fv(glGetUniformLocation(programID, "model"), 1, false, &sun->children[0]->transform.changeModelMatrix()[0][0]);
+        sun->drawScene(programID);
+
+        glUniformMatrix4fv(glGetUniformLocation(programID, "model"), 1, false, &rootNode->children[0]->transform.changeModelMatrix()[0][0]);
+        rootNode->drawScene(programID);
+
+
+        float earthRotationSpeed = 50.0f;
+        glm::vec3 earthPositionRelativeToSun = earth->transform.position - sun->transform.position;
+        glm::mat4 earthRotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(earthRotationSpeed*deltaTime), glm::vec3(0.0f, 1.0f, 0.0f));
+        earthPositionRelativeToSun = glm::vec3(earthRotationMatrix * glm::vec4(earthPositionRelativeToSun, 1.0f));
+
+        earth->transform.position = sun->transform.position + earthPositionRelativeToSun;
+        earth->transform.rotation.x += 23*deltaTime;
+
+
+        float moonRotationSpeed = 200.0f;
+        glm::vec3 moonPositionRelativeToEarth = moon->transform.position - earth->transform.position;
+        glm::mat4 moonRotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(moonRotationSpeed*deltaTime), glm::vec3(0.0f, 1.0f, 0.0f));
+        moonPositionRelativeToEarth = glm::vec3(moonRotationMatrix * glm::vec4(moonPositionRelativeToEarth, 1.0f));
+
+        moon->transform.position = earth->transform.position + moonPositionRelativeToEarth;
+        moon->transform.position.x += 0.07;
+        moon->transform.rotation.x += 6*deltaTime;
+
+
+        earth->update();
+        sun->transform.rotation.y += 20*deltaTime;
+        sun->update();
+        rootNode->update();
+        
+        glUniformMatrix4fv(glGetUniformLocation(programID, "view"), 1 , GL_FALSE, &viewMatrix[0][0]);
+        glUniformMatrix4fv(glGetUniformLocation(programID, "projection"), 1 , GL_FALSE, &projectionMatrix[0][0]);*/
+
+
+        //Moutain plan
+        if (!display_cameraOrbitale) {
 
             modelMatrix = glm::mat4(1.0f);
         }
@@ -384,60 +429,24 @@ int main( void )
             modelMatrix = glm::rotate(modelMatrix, glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 
             modelMatrix = glm::rotate(modelMatrix, timeCst, glm::vec3(0, 1, 0));
-        }*/
-
-        projectionMatrix = glm::perspective(glm::radians(45.0f), 4.0f/3.0f, 0.1f, 100.0f);
-
-        SceneGraph* earth = &sun;
-
-        while (earth->children.size())
-        {
-            glUniformMatrix4fv(glGetUniformLocation(programID, "model"), 1, false, &earth->transform.modelMatrix[0][0]);
-            earth->sendDatas();
-            earth->drawMesh();
-            earth->transform.rotation.x = 23;
-            earth->transform.rotation.y += 20 * deltaTime;
-            earth = earth->children.back().get();
         }
-
-        /*SceneGraph* moon = earth;
-
-        while (moon->children.size())
-        {
-            glUniformMatrix4fv(glGetUniformLocation(programID, "model"), 1, false, &moon->transform.modelMatrix[0][0]);
-            moon->sendDatas();
-            moon->drawMesh();
-            moon->transform.rotation.x = 6;
-            moon->transform.rotation.y += 1 * deltaTime;
-            moon = moon->children.back().get();
-        }*/
-
-        sun.transform.rotation.y += 20 * deltaTime;
-        sun.update();
 
 
         glUniformMatrix4fv(glGetUniformLocation(programID, "view"), 1 , GL_FALSE, &viewMatrix[0][0]);
         glUniformMatrix4fv(glGetUniformLocation(programID, "projection"), 1 , GL_FALSE, &projectionMatrix[0][0]);
         glUniformMatrix4fv(glGetUniformLocation(programID, "model"), 1, false, &modelMatrix[0][0]);
 
-        /*moutainPlan.sendDatas();
-        moutainPlan.drawMesh(programID);*/
-
+        rootNode->drawScene(programID);
 
         /*glGenBuffers(1, &vertexbuffer);
         glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-        glBufferData(GL_ARRAY_BUFFER, plan.indexed_vertices.size() * sizeof(glm::vec3), &plan.indexed_vertices[0], GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, rootNode->indexed_vertices.size() * sizeof(glm::vec3), &rootNode->indexed_vertices[0], GL_STATIC_DRAW);
 
         glGenBuffers(1, &elementbuffer);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, plan.indices.size() * sizeof(unsigned short), &plan.indices[0] , GL_STATIC_DRAW);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, rootNode->indices.size() * sizeof(unsigned short), &rootNode->indices[0] , GL_STATIC_DRAW);
 
-        glGenBuffers(1, &textureBuffer);
-        glBindBuffer(GL_ARRAY_BUFFER, textureBuffer);
-        glBufferData(GL_ARRAY_BUFFER, plan.textureData.size() * sizeof(float), &plan.textureData[0], GL_STATIC_DRAW);*/
-
-        // 1rst attribute buffer : vertices
-        /*glEnableVertexAttribArray(0);
+        glEnableVertexAttribArray(0);
         glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
         glVertexAttribPointer(
                     0,                  // attribute
@@ -446,58 +455,60 @@ int main( void )
                     GL_FALSE,           // normalized?
                     0,                  // stride
                     (void*)0            // array buffer offset
-                    );*/
+                    );
 
+        if (isATexturedMesh) {
+            glGenBuffers(1, &textureBuffer);
+            glBindBuffer(GL_ARRAY_BUFFER, textureBuffer);
+            glBufferData(GL_ARRAY_BUFFER, rootNode->textureData.size() * sizeof(float), &rootNode->textureData[0], GL_STATIC_DRAW);
 
-
-        // Index buffer
-        /*glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
-
-        glBindBuffer(GL_ARRAY_BUFFER, textureBuffer);
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
-        glEnableVertexAttribArray(1);
-
-        if (!isGrassTextureAlreadyImported) {
-            glActiveTexture(GL_TEXTURE0);
-            loadBMP_custom("grass.bmp");
-            glUniform1i(glGetUniformLocation(programID, "grassTexture"), 0);
-
-            isGrassTextureAlreadyImported = true;
+            glBindBuffer(GL_ARRAY_BUFFER, textureBuffer);
+            glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
+            glEnableVertexAttribArray(1);
         }
 
-        if (!isRockTextureAlreadyImported) {
-            glActiveTexture(GL_TEXTURE1);
-            loadBMP_custom("rock.bmp");
-            glUniform1i(glGetUniformLocation(programID, "rockTexture"), 1);
 
-            isRockTextureAlreadyImported = true;
+        if (isATexturedMesh) {
+            if (!isGrassTextureAlreadyImported) {
+                glActiveTexture(GL_TEXTURE0);
+                loadBMP_custom("grass.bmp");
+                glUniform1i(glGetUniformLocation(programID, "grassTexture"), 0);
+
+                isGrassTextureAlreadyImported = true;
+            }
+
+            if (!isRockTextureAlreadyImported) {
+                glActiveTexture(GL_TEXTURE1);
+                loadBMP_custom("rock.bmp");
+                glUniform1i(glGetUniformLocation(programID, "rockTexture"), 1);
+
+                isRockTextureAlreadyImported = true;
+            }
+
+            if (!isSnowrocksTextureAlreadyImported) {
+                glActiveTexture(GL_TEXTURE2);
+                loadBMP_custom("snowrocks.bmp");
+                glUniform1i(glGetUniformLocation(programID, "snowrocksTexture"), 2);
+
+                isSnowrocksTextureAlreadyImported = true;
+            }
+
+            if (!isHeightMapTextureAlreadyImported) {
+                glActiveTexture(GL_TEXTURE3);
+                loadBMP_custom("Heightmap_Mountain.bmp");
+                glUniform1i(glGetUniformLocation(programID, "textureCoords"), 3);
+
+                isHeightMapTextureAlreadyImported = true;
+            }
         }
 
-        if (!isSnowrocksTextureAlreadyImported) {
-            glActiveTexture(GL_TEXTURE2);
-            loadBMP_custom("snowrocks.bmp");
-            glUniform1i(glGetUniformLocation(programID, "snowrocksTexture"), 2);
-
-            isSnowrocksTextureAlreadyImported = true;
-        }
-
-        if (!isHeightMapTextureAlreadyImported) {
-            glActiveTexture(GL_TEXTURE3);
-            loadBMP_custom("Heightmap_Mountain.bmp");
-            glUniform1i(glGetUniformLocation(programID, "textureCoords"), 3);
-
-            isHeightMapTextureAlreadyImported = true;
-        }*/
-        
-        // Draw the triangles !
-        /*glDrawElements(
+        glDrawElements(
                     GL_TRIANGLES,      // mode
-                    plan.indices.size(),    // count
+                    rootNode->indices.size(),    // count
                     GL_UNSIGNED_SHORT,   // type
                     (void*)0           // element array buffer offset
                     );*/
 
-        glDisableVertexAttribArray(0);
 
         // Swap buffers
         glfwSwapBuffers(window);
@@ -508,10 +519,8 @@ int main( void )
            glfwWindowShouldClose(window) == 0 );
 
     // Cleanup VBO and shader
-    /*glDeleteBuffers(1, &vertexbuffer);
-    glDeleteBuffers(1, &elementbuffer);
-    glDeleteBuffers(1, &textureBuffer);*/
     glDeleteProgram(programID);
+    rootNode->deleteBuffer();
     glDeleteVertexArrays(1, &VertexArrayID);
 
     // Close OpenGL window and terminate GLFW
@@ -568,11 +577,14 @@ void processInput(GLFWwindow *window)
 
 
     if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS && !PkeyIsPressed) {
-        /*plan.resolution ++;
+        resolution ++;
 
-        plan.generatePlan(1, plan.resolution);
-        plan.generateTriangle(plan.resolution);
-        plan.generateTextureCoords(1, plan.resolution);*/
+        indexed_vertices = generatePlan(1, resolution);
+        indices = generateTriangle(resolution);
+        textureData = generateTextureCoords(1, resolution);
+
+        rootNode->updateScene(indexed_vertices, textureData, indices);
+        plan->updateScene(indexed_vertices, textureData, indices);
 
         PkeyIsPressed = true;
     }
@@ -582,11 +594,14 @@ void processInput(GLFWwindow *window)
     }
 
     if (glfwGetKey(window, GLFW_KEY_SEMICOLON) == GLFW_PRESS && !SemicolonkeyIsPressed) { //M
-        /*plan.resolution--;
+        resolution --;
 
-        plan.generatePlan(1, plan.resolution);
-        plan.generateTriangle(plan.resolution);
-        plan.generateTextureCoords(1, plan.resolution);*/
+        indexed_vertices = generatePlan(1, resolution);
+        indices = generateTriangle(resolution);
+        textureData = generateTextureCoords(1, resolution);
+
+        rootNode->updateScene(indexed_vertices, textureData, indices);
+        plan->updateScene(indexed_vertices, textureData, indices);
 
         SemicolonkeyIsPressed = true;
     }
@@ -630,7 +645,7 @@ void processInput(GLFWwindow *window)
 
 }
 
-void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
+/*void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 {
     float xpos = static_cast<float>(xposIn);
     float ypos = static_cast<float>(yposIn);
@@ -676,7 +691,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
         fov = 1.0f;
     if (fov > 45.0f)
         fov = 45.0f;
-}
+}*/
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
 // ---------------------------------------------------------------------------------------------

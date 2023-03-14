@@ -295,7 +295,7 @@ CMakeFiles/TP3.dir/TP3/TP3.cpp.o: \
  /home/lea/M1-IMAGINE/S2/MoteurJeux/M1-IMAGINE-MoteurDeJeux-TP3/./common/objloader.hpp \
  /home/lea/M1-IMAGINE/S2/MoteurJeux/M1-IMAGINE-MoteurDeJeux-TP3/./common/vboindexer.hpp \
  /home/lea/M1-IMAGINE/S2/MoteurJeux/M1-IMAGINE-MoteurDeJeux-TP3/./common/texture.hpp \
- /home/lea/M1-IMAGINE/S2/MoteurJeux/M1-IMAGINE-MoteurDeJeux-TP3/TP3/Entity.hpp \
+ /home/lea/M1-IMAGINE/S2/MoteurJeux/M1-IMAGINE-MoteurDeJeux-TP3/TP3/SceneGraphNode.hpp \
  /home/lea/M1-IMAGINE/S2/MoteurJeux/M1-IMAGINE-MoteurDeJeux-TP3/TP3/Mesh.hpp \
  /home/lea/M1-IMAGINE/S2/MoteurJeux/M1-IMAGINE-MoteurDeJeux-TP3/TP3/Transform.hpp \
  /usr/include/c++/11/list /usr/include/c++/11/bits/stl_list.h \

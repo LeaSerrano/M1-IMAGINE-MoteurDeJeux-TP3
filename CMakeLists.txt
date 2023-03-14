@@ -68,7 +68,7 @@ add_executable(TP3
 	common/vboindexer.hpp
 	TP3/Model.hpp
 	TP3/Mesh.hpp
-	TP3/Entity.hpp
+	TP3/SceneGraphNode.hpp
 	TP3/Transform.hpp
 	
         TP3/vertex_shader.glsl
